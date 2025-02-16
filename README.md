@@ -321,7 +321,7 @@ $arquivo = curl_exec($ch);
 file_put_contents("arquivo_baixado.pdf", $arquivo);
 ```
 
-#### _Parametros da HEADER `accept` ou `Content-Type`_
+#### _Parametros da HEADER `Accept` ou `Content-Type`_
 
 `application/json`
 
