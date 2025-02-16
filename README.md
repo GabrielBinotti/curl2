@@ -95,12 +95,12 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 ### ___Usando Certificados___
 Para garantir maior segurança nas requisições, pode especificar um arquivo CA.
 ```php
-curl_setopt($ch, CURLOPT_CAINFO, "/caminho/do/certificado/ca-cert.pem");
+curl_setopt($ch, CURLOPT_CAINFO, "/caminho/do/certificado/ca-cert.crt");
 ```
 
 Se precisar usar um certificado cliente.
 ```php
-curl_setopt($ch, CURLOPT_SSLCERT, "/caminho/do/certificado/cert.pem");
+curl_setopt($ch, CURLOPT_SSLCERT, "/caminho/do/certificado/cert.crt");
 curl_setopt($ch, CURLOPT_SSLKEY, "/caminho/da/chave/private.key");
 ```
 
@@ -130,15 +130,51 @@ Durante a execução , você será solicitado a preencher informações como:
 - __Organization Name (O):__ Minha Empresa
 - __Common Name (CN):__ Minha CA
 
-- 
+2.1 Criar uma chave privada para o cliente
+```bash
+openssl genrsa -out cliente.key 2048
+```
+
+2.2 Criar uma requisição de certificado (CSR - Certificate Signing Request)
+```bash
+openssl req -new -key cliente.key -out cliente.csr
+```
+
+- `-new` → Gera uma nova requisição de certificado.
+- `-key cliente.key` → Usa a chave privada do cliente.
+- `-out cliente.csr` → Salva o arquivo de requisição.
+
+2.3 Assiar o certificado do cliente com CA
+
+```bash
+openssl x509 -req -in cliente.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out cliente.crt -days 365
+```
+
+- `-req` → Indica que será usado um CSR.
+- `-in cliente.csr` → Usa a requisição do cliente.
+- `-CA ca.crt` → Assina o certificado usando a CA.
+- `-CAkey ca.key` → Usa a chave da CA para assinar.
+- `-CAcreateserial` → Cria um número serial para o certificado.
+- `-out cliente.crt` → Gera o certificado assinado.
+- `-days 365` → Define validade de 1 ano.
+
+
 ### ___Configuração de Cookies___
 
+Para definir um cookie na requisição, use `curlopt_cookie()`.
+```php
+curl_setopt($ch, CURLOPT_COOKIE, "nome=Gabriel; token=abc123");
+```
 
+Salvar em um arquivo, use `curlopt_cookiejar()`.
+```php
+curl_setopt($ch, CURLOPT_COOKIEJAR, "cookies.txt");
+```
 
-
-
-
-
+Para utilizar os cookies de um arquivo, use `curlopt_cookiefile()`.
+```php
+curl_setopt($ch, CURLOPT_COOKIEFILE, "cookies.txt");
+```
 
 ### ___Autenticações___
 
