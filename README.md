@@ -89,7 +89,7 @@ Por padrão o cURL ele verifica o certificado SSL do servidor, em ambiente de pr
 
 ```php
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); // (1 ou 2)
 ```
 
 ### ___Usando Certificados___
@@ -178,24 +178,147 @@ curl_setopt($ch, CURLOPT_COOKIEFILE, "cookies.txt");
 
 ### ___Autenticações___
 
+No cURL é possivel configurar diferentes formas de autenticações. Aqui estão algumas delas.
 
+1. JWT - é um método comum de autenticações em APIs.
+```php
+$headers = [
+    "Authorization: Bearer SEU_TOKEN_JWT_AQUI",
+    "Content-Type: application/json"
+];
 
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+```
+
+2. Basic Auth - Envia as credenciais (usuario:senha) codificados em Base64.
+
+___Exemplo manual___
+```php
+$usuario = "meu_usuario";
+$senha = "minha_senha";
+$auth = base64_encode("$usuario:$senha");
+
+$headers = [
+    "Authorization: Basic $auth"
+];
+
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+```
+
+___Exemplo Automático___
+```php
+curl_setopt($ch, CURLOPT_USERPWD, "meu_usuario:minha_senha");
+curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+```
+
+3. Digest Auth -> é mais segura que Basic Auth, pois não envia a senha diretamente.
+```php
+curl_setopt($ch, CURLOPT_USERPWD, "meu_usuario:minha_senha");
+curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+```
+
+4. OAuth2.0 - Usar o Access Token.
+```php
+
+$headers = [
+    "Authorization: Bearer SEU_ACCESS_TOKEN"
+];
+
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+```
 
 
 ### ___Configurando o Header___
 
+No header podemos ter diversas configurações (Envio e Recebimento).
+Para configurar diferentes tipos de resposta use o `Accept`.
+```php
+$headers = [
+    "Accept: application/json", // Aceita JSON
+    "Accept: application/xml",  // Aceita XML
+    "Accept: */*"               // Aceita qualquer tipo de resposta
+];
 
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+```
 
+Para enviar dados em diferentes formatos utilize o `Content-Type`.
 
+- JSON
+```php
+$dados = json_encode([
+    "nome" => "Gabriel",
+    "idade" => 25
+]);
 
+$headers = [
+    "Content-Type: application/json"
+];
 
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $dados);
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+```
 
+- Como formulário
+```php
+$dados = http_build_query([
+    "nome" => "Gabriel",
+    "idade" => 25
+]);
+$headers = [
+    "Content-Type: application/x-www-form-urlencoded"
+];
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $dados);
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers)
+```
 
+- Enviar dados + arquivos
+```php
+$dados = [
+    "nome" => "Gabriel",
+    "foto" => new CURLFile("caminho/da/imagem.jpg") // Envia o arquivo
+];
 
+$headers = [
+    "Content-Type: multipart/form-data"
+];
 
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $dados);
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+```
 
+- Enviar XML
+```php
+$xml = '<?xml version="1.0" encoding="UTF-8"?>
+<usuario>
+    <nome>Gabriel</nome>
+    <idade>25</idade>
+</usuario>';
 
+$headers = [
+    "Content-Type: application/xml"
+];
 
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
+```
 
+- Receber um arquivo especifico
+```php
+$headers = [
+    "Accept: application/pdf" // Aceita apenas arquivos PDF
+];
 
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+$arquivo = curl_exec($ch);
+file_put_contents("arquivo_baixado.pdf", $arquivo);
+```
+
+#### __Parametros da HEADER__
